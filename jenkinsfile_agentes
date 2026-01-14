@@ -51,7 +51,7 @@ pipeline {
 
                             sleep 4
 
-                            java -jar /home/agent/wiremock/wiremock-standalone-2.35.0.jar --port 9090 --root-dir /home/agent/wiremock &
+                            java -jar /home/agent/wiremock/wiremock-jre8-standalone-2.35.0.jar --port 9090 --root-dir /home/agent/wiremock &
                             export PYTHONPATH=${WORKSPACE}
                             
                             sleep 15
