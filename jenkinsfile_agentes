@@ -32,7 +32,7 @@ pipeline {
                             sh '''
                                 ls -la
                                 export PYTHONPATH=${WORKSPACE}
-                                /home/agent1/.local/bin/pytest --junitxml=result-unit.xml test/unit
+                                /home/.local/bin/pytest --junitxml=result-unit.xml test/unit
                             '''
                             stash name:'unit-res', includes:'result-unit.xml'
                        }
@@ -51,12 +51,12 @@ pipeline {
 
                             sleep 4
 
-                            java -jar /home/agent2/wiremock/wiremock-standalone-3.3.1.jar --port 9090 --root-dir /home/agent2/wiremock &
+                            java -jar /home/agent/wiremock/wiremock-standalone-2.35.0.jar --port 9090 --root-dir /home/agent2/wiremock &
                             export PYTHONPATH=${WORKSPACE}
                             
                             sleep 15
                             
-                            /home/agent2/.local/bin/pytest --junitxml=result-rest.xml test/rest
+                            /home/.local/bin/pytest --junitxml=result-rest.xml test/rest
                         '''
                       }
                       stash name:'rest-res', includes:'result-rest.xml'
