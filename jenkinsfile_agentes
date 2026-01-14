@@ -1,33 +1,37 @@
 pipeline {
     agent any
+
     options { skipDefaultCheckout() }
-    stages {
-        stage ('Get Code') {
+
+     stages {
+        stage('Get Code') {
             steps {
-                //Obtener codigo del repo
+                // Obtener código del repo
                 git 'https://github.com/mmuniz-unir/helloworld.git'
 	            echo WORKSPACE
                 bat 'dir'
                 stash name:'code', includes:'**'
             }
         }
-        
-       stage ('Build') {
-            steps {
-            
-                echo 'Eyyy, esto es Python. No hay que compilar nada :)'
-            }
+    
+        stage('Build') {
+           steps {
+              echo 'Eyyy, esto es Python. No hay que compilar nada!!!'
+           }
         }
-        stage ('Test') {
-            parallel {
-            
-               agent {label 'agent1'}
+        
+        stage('Tests')
+        {
+            parallel
+            {
+                stage('Unit') {
+                    agent {label 'agent1'}
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             unstash name:'code'
-                        sh '''
-							ls -la
-                            export PYTHONPATH=${WORKSPACE}
+                            sh '''
+                                ls -la
+                                export PYTHONPATH=${WORKSPACE}
                                 /home/agent1/.local/bin/pytest --junitxml=result-unit.xml test/unit
                             '''
                             stash name:'unit-res', includes:'result-unit.xml'
@@ -71,4 +75,4 @@ pipeline {
         }
      
     }
-
+}
