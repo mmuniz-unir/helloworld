@@ -32,7 +32,7 @@ pipeline {
                             sh '''
                                 ls -la
                                 export PYTHONPATH=${WORKSPACE}
-                                /home/.local/bin/pytest --junitxml=result-unit.xml test/unit
+                                /home/jenkins/.local/bin/pytest --junitxml=result-unit.xml test/unit
                             '''
                             stash name:'unit-res', includes:'result-unit.xml'
                        }
@@ -47,16 +47,16 @@ pipeline {
                         unstash name:'code'
                         sh '''
                             export FLASK_APP=app/api.py                          
-                            /home/agent2/.local/bin/flask run &
+                            /home/jenkins/.local/bin/flask run &
 
                             sleep 4
 
-                            java -jar /home/agent/wiremock/wiremock-standalone-2.35.0.jar --port 9090 --root-dir /home/agent2/wiremock &
+                            java -jar /home/jenkins/wiremock/wiremock-standalone-2.35.0.jar --port 9090 --root-dir /home/agent2/wiremock &
                             export PYTHONPATH=${WORKSPACE}
                             
                             sleep 15
                             
-                            /home/.local/bin/pytest --junitxml=result-rest.xml test/rest
+                            /home/jenkins/.local/bin/pytest --junitxml=result-rest.xml test/rest
                         '''
                       }
                       stash name:'rest-res', includes:'result-rest.xml'
