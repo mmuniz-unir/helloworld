@@ -21,40 +21,54 @@ pipeline {
         stage ('Test') {
             parallel {
             
-               stage ('Unit') {
+               agent {label 'agent1'}
                     steps {
-        
-                        bat '''
-                            set PYTHONPATH=%WORKSPACE%
-                            pytest --junitxml=result-unit.xml test\\unit
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            unstash name:'code'
+                        sh '''
+							ls -la
+                            export PYTHONPATH=${WORKSPACE}
+                                /home/agent1/.local/bin/pytest --junitxml=result-unit.xml test/unit
                             '''
-                        
+                            stash name:'unit-res', includes:'result-unit.xml'
+                       }
                     }
-                }
+                }   
                 
-               stage ('Service') {
+                
+                stage('Rest') {
+                    agent {label 'agent2'}
                     steps {
-        
-                        bat '''
-                            set FLASK_APP=app\\api.py
-                            start flask run
-                            start java -jar "C:\\Unir\\cp1\\helloworld-master\\test\\wiremock\\wiremock-jre8-standalone-2.35.0.jar" --port 9090 -v --root-dir test\\wiremock
-                            ping 127.0.0.1 -n 11 >nul
-                            set PYTHONPATH=%WORKSPACE%
-                            pytest --junitxml=result-rest.xml test\\rest
+                      catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                        unstash name:'code'
+                        sh '''
+                            export FLASK_APP=app/api.py                          
+                            /home/agent2/.local/bin/flask run &
+
+                            sleep 4
+
+                            java -jar /home/agent2/wiremock/wiremock-standalone-3.3.1.jar --port 9090 --root-dir /home/agent2/wiremock &
+                            export PYTHONPATH=${WORKSPACE}
                             
-                            '''
-                        
-                    }
-                }
-            }   
-        }
-       stage ('Results') {
-            steps {
-            
-                junit 'result*.xml'
+                            sleep 15
+                            
+                            /home/agent2/.local/bin/pytest --junitxml=result-rest.xml test/rest
+                        '''
+                      }
+                      stash name:'rest-res', includes:'result-rest.xml'
+                    }    
+                }                
                 
             }
         }
+
+        stage('Results') {
+            steps {
+                unstash name:'unit-res'
+                unstash name:'rest-res'
+                junit 'result*.xml' 
+            }
+        }
+     
     }
 }
