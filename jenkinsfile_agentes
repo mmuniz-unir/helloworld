@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+    options { skipDefaultCheckout() }
+    stages {
+        stage ('Get Code') {
+            steps {
+                //Obtener codigo del repo
+                git 'https://github.com/mmuniz-unir/helloworld.git'
+            }
+        }
+        
+       stage ('Build') {
+            steps {
+            
+                echo 'Eyyy, esto es Python. No hay que compilar nada :)'
+                echo WORKSPACE
+                bat 'dir'
+            }
+        }
+        stage ('Test') {
+            parallel {
+            
+               stage ('Unit') {
+                    steps {
+        
+                        bat '''
+                            set PYTHONPATH=%WORKSPACE%
+                            pytest --junitxml=result-unit.xml test\\unit
+                            '''
+                        
+                    }
+                }
+                
+               stage ('Service') {
+                    steps {
+        
+                        bat '''
+                            set FLASK_APP=app\\api.py
+                            start flask run
+                            start java -jar "C:\\Unir\\cp1\\helloworld-master\\test\\wiremock\\wiremock-jre8-standalone-2.35.0.jar" --port 9090 -v --root-dir test\\wiremock
+                            ping 127.0.0.1 -n 11 >nul
+                            set PYTHONPATH=%WORKSPACE%
+                            pytest --junitxml=result-rest.xml test\\rest
+                            
+                            '''
+                        
+                    }
+                }
+            }   
+        }
+       stage ('Results') {
+            steps {
+            
+                junit 'result*.xml'
+                
+            }
+        }
+    }
+}
