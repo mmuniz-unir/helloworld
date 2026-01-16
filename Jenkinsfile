@@ -1,0 +1,79 @@
+pipeline {
+    agent any
+
+    options { skipDefaultCheckout() }
+
+     stages {
+        stage('Get Code') {
+            steps {
+                // Obtener código del repo
+                git 'https://github.com/mmuniz-unir/helloworld.git'
+	            echo WORKSPACE
+				echo 'marc muñiz'
+                bat 'dir'
+                stash name:'code', includes:'**'
+            }
+        }
+    
+        stage('Build') {
+           steps {
+              echo 'Eyyy, esto es Python. No hay que compilar nada!!!'
+           }
+        }
+        
+        stage('Tests')
+        {
+            parallel
+            {
+                stage('Unit') {
+                    agent {label 'agent1'}
+                    steps {
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            unstash name:'code'
+                            sh '''
+                                ls -la
+                                export PYTHONPATH=${WORKSPACE}
+                                /home/jenkins/.local/bin/pytest --junitxml=result-unit.xml test/unit
+                            '''
+                            stash name:'unit-res', includes:'result-unit.xml'
+                       }
+                    }
+                }   
+                
+                
+                stage('Rest') {
+                    agent {label 'agent2'}
+                    steps {
+                      catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                        unstash name:'code'
+                        sh '''
+                            export FLASK_APP=app/api.py                          
+                            /home/jenkins/.local/bin/flask run &
+
+                            sleep 4
+
+                            java -jar /home/agent/wiremock/wiremock-jre8-standalone-2.35.0.jar --port 9090 --root-dir /home/agent/wiremock &
+                            export PYTHONPATH=${WORKSPACE}
+                            
+                            sleep 15
+                            
+                            /home/jenkins/.local/bin/pytest --junitxml=result-rest.xml test/rest
+                        '''
+                      }
+                      stash name:'rest-res', includes:'result-rest.xml'
+                    }    
+                }                
+                
+            }
+        }
+
+        stage('Results') {
+            steps {
+                unstash name:'unit-res'
+                unstash name:'rest-res'
+                junit 'result*.xml' 
+            }
+        }
+     
+    }
+}
