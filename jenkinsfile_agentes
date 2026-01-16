@@ -66,7 +66,7 @@ pipeline {
             steps {
                 unstash name:'code'
                 sh '''
-                    flake8 --format=pylint --exit-zero app >flake8.out
+                    /home/jenkins/.local/bin/flake8 --format=pylint --exit-zero app >flake8.out
 
                 '''
 
