@@ -91,7 +91,7 @@ pipeline {
 
                 '''  
                 recordIssues(
-                    tools: [bandit(name: 'Bandit', pattern: 'bandit.out')],
+                    tools: [bandit(name: 'Bandit', pattern: 'bandit.json')],
                     qualityGates: [
                         [threshold: 1, type: 'TOTAL', unstable: true],
                         [threshold: 2, type: 'TOTAL', unstable: false]
