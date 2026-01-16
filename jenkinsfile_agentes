@@ -87,7 +87,7 @@ pipeline {
                 unstash name:'code'
 
                 sh '''
-                    /home/jenkins/.local/bin/bandit --exit-zero -r . -f json -o bandit.json --msg-template "{abspath}:{line}: [{test_id}] {msg}"
+                    /home/jenkins/.local/bin/bandit --exit-zero -r . -f json -o bandit.json
 
                 '''  
                 recordIssues(
