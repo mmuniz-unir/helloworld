@@ -9,7 +9,7 @@ pipeline {
                 // Obtener código del repo
                 git 'https://github.com/mmuniz-unir/helloworld.git'
 	            echo WORKSPACE
-				echo "marc muñiz"
+				echo marc muñiz
                 bat 'dir'
                 stash name:'code', includes:'**'
             }
