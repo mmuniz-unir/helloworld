@@ -14,13 +14,7 @@ pipeline {
                 stash name:'code', includes:'**'
             }
         }
-    
-        stage('Build') {
-           steps {
-              echo 'Eyyy, esto es Python. No hay que compilar nada!!!'
-           }
-        }
-        
+            
         stage('Tests')
         {
             parallel
@@ -55,7 +49,7 @@ pipeline {
                             java -jar /home/agent/wiremock/wiremock-jre8-standalone-2.35.0.jar --port 9090 --root-dir /home/agent/wiremock &
                             export PYTHONPATH=${WORKSPACE}
                             
-                            sleep 15
+                            sleep 10
                             
                             /home/jenkins/.local/bin/pytest --junitxml=result-rest.xml test/rest
                         '''
@@ -67,13 +61,82 @@ pipeline {
             }
         }
 
-        stage('Results') {
+        stage('Static'){
+            agent {label 'agent2'}
             steps {
-                unstash name:'unit-res'
-                unstash name:'rest-res'
-                junit 'result*.xml' 
+                unstash name:'code'
+                sh '''
+                    /home/jenkins/.local/bin/flake8 --format=pylint --exit-zero app >flake8.out
+
+                '''
+
+                recordIssues(
+                tools: [flake8(name: 'Flake8', pattern: 'flake8.out')],
+                qualityGates: [
+                [threshold: 8,  type: 'TOTAL', unstable: true],
+                [threshold: 10, type: 'TOTAL', unstable: false]
+                ]
+                )
+
             }
+
         }
-     
-    }
-}
+         stage('Security Test'){
+            agent {label 'agent1'}
+            steps {
+                unstash name:'code'
+
+                sh '''
+                    /home/jenkins/.local/bin/bandit --exit-zero -r . -f custom --msg-template "{abspath}:{line}: [{test_id}, ] {msg}" > bandit-pylint.out
+
+                '''  
+                recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit-pylint.out',)], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]               
+             }
+
+         }
+
+         stage('Performance'){
+             agent {label 'windows'}
+             steps {
+
+                bat '''
+                    set FLASK_APP=app\\api.py
+                    start flask run  
+                    ping 127.0.0.1 -n 7 >nul                
+                    C:\\jmeter\\apache-jmeter-5.6.3\\bin\\jmeter -n -t test\\jmeter\\test-plan.jmx -f -l performance.jtl
+
+                '''
+
+                perfReport sourceDataFiles: 'performance.jtl'
+                 
+             }
+
+         }
+
+         stage('Coverage'){
+            agent {label 'windows'}
+             steps {
+                unstash name: 'code'
+
+                bat '''
+                    set PYTHONPATH=%WORKSPACE%
+                    coverage run --source=app --omit=app\\__init__.py,app\\api.py -m pytest test\\unit
+                    coverage xml
+
+                '''
+                recordCoverage qualityGates: [
+                    [criticality: 'ERROR', integerThreshold: 85, metric: 'LINE', threshold: 85.0], 
+                    [criticality: 'NOTE', integerThreshold: 95, metric: 'LINE', threshold: 95.0], 
+                    [criticality: 'ERROR', integerThreshold: 80, metric: 'BRANCH', threshold: 80.0], 
+                    [criticality: 'NOTE', integerThreshold: 90, metric: 'BRANCH', threshold: 90.0]
+                    ], tools: [
+                        [parser: 'COBERTURA', pattern: 'coverage.xml']]
+                 
+             }
+
+        }
+
+      }
+
+
+}    
