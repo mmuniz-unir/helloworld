@@ -5,12 +5,16 @@ pipeline {
 
      stages {
         stage('Get Code') {
+            agent {label 'windows'}
             steps {
                 // Obtener código del repo
                 git 'https://github.com/mmuniz-unir/helloworld.git'
-	            echo WORKSPACE
-				echo 'marc muñiz'
-                bat 'dir'
+                bat '''
+                    whoami
+                    hostname
+                    echo WORKSPACE=%WORKSPACE%
+                    dir
+                '''
                 stash name:'code', includes:'**'
             }
         }
@@ -25,6 +29,9 @@ pipeline {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             unstash name:'code'
                             sh '''
+                                whoami
+                                hostname
+                                echo WORKSPACE=%WORKSPACE%
                                 ls -la
                                 export PYTHONPATH=${WORKSPACE}
                                 /home/jenkins/.local/bin/pytest --junitxml=result-unit.xml test/unit
@@ -41,6 +48,9 @@ pipeline {
                       catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         unstash name:'code'
                         sh '''
+                            whoami
+                            hostname
+                            echo WORKSPACE=%WORKSPACE%
                             export FLASK_APP=app/api.py                          
                             /home/jenkins/.local/bin/flask run &
 
@@ -66,6 +76,9 @@ pipeline {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                 unstash name:'code'
                 sh '''
+                    whoami
+                    hostname
+                    echo WORKSPACE=%WORKSPACE%
                     /home/jenkins/.local/bin/flake8 --format=pylint --exit-zero app >flake8.out
 
                 '''
@@ -91,6 +104,9 @@ pipeline {
                 unstash name:'code'
 
                 sh '''
+                    whoami
+                    hostname
+                    echo WORKSPACE=%WORKSPACE%
                     /home/jenkins/.local/bin/bandit --exit-zero -r . -f custom --msg-template "{abspath}:{line}: [{test_id}, ] {msg}" > bandit-pylint.out
 
                 '''  
@@ -113,6 +129,9 @@ pipeline {
                 unstash name:'code'
 
                 bat '''
+                    whoami
+                    hostname
+                    echo WORKSPACE=%WORKSPACE%
                     set FLASK_APP=app\\api.py
                     start flask run
                     ping 127.0.0.1 -n 7 >nul
@@ -137,6 +156,9 @@ pipeline {
                 unstash name: 'code'
 
                 bat '''
+                    whoami
+                    hostname
+                    echo WORKSPACE=%WORKSPACE%
                     set PYTHONPATH=%WORKSPACE%
                     coverage run --source=app --omit=app\\__init__.py,app\\api.py -m pytest test\\unit
                     coverage xml
