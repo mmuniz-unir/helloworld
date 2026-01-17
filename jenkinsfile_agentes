@@ -108,6 +108,7 @@ pipeline {
          stage('Coverage'){
             agent {label 'windows'}
              steps {
+                unstash name: 'code'
 
                 bat '''
                     set PYTHONPATH=%WORKSPACE%
