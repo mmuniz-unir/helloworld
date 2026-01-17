@@ -59,7 +59,6 @@ pipeline {
                 }                
                 
             }
-        }
 
         stage('Static'){
             agent {label 'agent2'}
@@ -94,6 +93,8 @@ pipeline {
              }
 
          }
+
+    }
 
          stage('Performance'){
              agent {label 'windows'}
