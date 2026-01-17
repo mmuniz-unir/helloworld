@@ -63,6 +63,7 @@ pipeline {
         stage('Static'){
             agent {label 'agent2'}
             steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                 unstash name:'code'
                 sh '''
                     /home/jenkins/.local/bin/flake8 --format=pylint --exit-zero app >flake8.out
@@ -78,11 +79,15 @@ pipeline {
                 )
 
             }
+            }
 
         }
          stage('Security Test'){
             agent {label 'agent1'}
             steps {
+
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+
                 unstash name:'code'
 
                 sh '''
@@ -93,6 +98,7 @@ pipeline {
              }
 
          }
+         }
 
         }
 
@@ -102,7 +108,9 @@ pipeline {
              agent {label 'windows'}
              steps {
 
-                unstash name:'code'
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+
+//                unstash name:'code'
 
                 bat '''
                     set FLASK_APP=app\\api.py
@@ -116,11 +124,16 @@ pipeline {
                  
              }
 
+             }
+
          }
 
          stage('Coverage'){
             agent {label 'windows'}
              steps {
+
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+
                 unstash name: 'code'
 
                 bat '''
@@ -137,6 +150,8 @@ pipeline {
                     ], tools: [
                         [parser: 'COBERTURA', pattern: 'coverage.xml']]
                  
+             }
+
              }
 
         }

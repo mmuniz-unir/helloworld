@@ -99,6 +99,8 @@ pipeline {
              agent {label 'windows'}
              steps {
 
+                    unstash name:'code'
+
                 bat '''
                     set FLASK_APP=app\\api.py
                     start flask run  
