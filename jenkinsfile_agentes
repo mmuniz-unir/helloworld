@@ -58,7 +58,7 @@ pipeline {
                     }    
                 }                
                 
-            }
+            
 
         stage('Static'){
             agent {label 'agent2'}
@@ -93,6 +93,8 @@ pipeline {
              }
 
          }
+
+        }
 
     }
 
