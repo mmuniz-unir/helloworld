@@ -105,12 +105,12 @@ pipeline {
     }
 
          stage('Performance'){
-             agent {label 'windows'}
+             agent {label 'linux'}
              steps {
 
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
 
-//                unstash name:'code'
+                unstash name:'code'
 
                 bat '''
                     set FLASK_APP=app\\api.py
