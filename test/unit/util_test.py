@@ -24,9 +24,9 @@ class TestUtil(unittest.TestCase):
         self.assertRaises(TypeError, util.convert_to_number, object())
 
     def test_convert_to_number_invalid_with_dot(self):
-        self.assertRaises(TypeError, util.convert_to_number, "1.")
-        self.assertRaises(TypeError, util.convert_to_number, ".1")
+        self.assertRaises(TypeError, util.convert_to_number, "1..0")
         self.assertRaises(TypeError, util.convert_to_number, "1.2.3")
+        self.assertRaises(TypeError, util.convert_to_number, ".")
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
