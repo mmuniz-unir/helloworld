@@ -7,7 +7,8 @@ pipeline {
         stage('Get Code') {
             steps {
                 // Obtener código del repo
-                git 'https://github.com/mmuniz-unir/helloworld.git'
+                git branch: 'feature_fix_coverage',
+                url: 'https://github.com/mmuniz-unir/helloworld.git'
 	            echo WORKSPACE
 				echo 'marc muñiz'
                 bat 'dir'
