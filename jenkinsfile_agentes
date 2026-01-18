@@ -180,5 +180,11 @@ pipeline {
 
       }
 
+    post {
+        always {
+            echo 'Limpieza del workspace (buena práctica)'
+            cleanWs()
+        }
+    }
 
 }    
