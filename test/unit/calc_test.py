@@ -61,6 +61,17 @@ class TestCalculate(unittest.TestCase):
         self.assertEqual(0, self.calc.substract(0, 0))
         self.assertEqual(0, self.calc.substract(0, 0))
         self.assertRaises(TypeError, self.calc.substract, "0", 0)
+
+    def test_divide_by_zero_raises_type_error(self):
+        self.assertRaises(TypeError, self.calc.divide, 5, 0)
+        self.assertRaises(TypeError, self.calc.divide, -3, 0)
+
+    def test_check_types_all_invalid_combinations(self):
+        self.assertRaises(TypeError, self.calc.substract, None, 1)
+        self.assertRaises(TypeError, self.calc.substract, 1, None)
+        self.assertRaises(TypeError, self.calc.substract, None, None)
+
+
         
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
