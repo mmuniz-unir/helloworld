@@ -24,14 +24,14 @@ pipeline {
             parallel
             {
                 stage('Unit') {
-                    agent {label 'agent1'}
+                    agent {label 'Linux'}
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             unstash name:'code'
                             sh '''
                                 whoami
                                 hostname
-                                echo WORKSPACE=%WORKSPACE%
+                                echo WORKSPACE=$WORKSPACE
                                 ls -la
                                 export PYTHONPATH=${WORKSPACE}
                                 /home/jenkins/.local/bin/pytest --junitxml=result-unit.xml test/unit
@@ -43,14 +43,14 @@ pipeline {
                 
                 
                 stage('Rest') {
-                    agent {label 'agent2'}
+                    agent {label 'Linux'}
                     steps {
                       catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         unstash name:'code'
                         sh '''
                             whoami
                             hostname
-                            echo WORKSPACE=%WORKSPACE%
+                            echo WORKSPACE=$WORKSPACE
                             export FLASK_APP=app/api.py                          
                             /home/jenkins/.local/bin/flask run &
 
@@ -71,14 +71,14 @@ pipeline {
             
 
         stage('Static'){
-            agent {label 'agent2'}
+            agent {label 'Linux'}
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                 unstash name:'code'
                 sh '''
                     whoami
                     hostname
-                    echo WORKSPACE=%WORKSPACE%
+                    echo WORKSPACE=$WORKSPACE
                     /home/jenkins/.local/bin/flake8 --format=pylint --exit-zero app >flake8.out
 
                 '''
@@ -96,7 +96,7 @@ pipeline {
 
         }
          stage('Security Test'){
-            agent {label 'agent1'}
+            agent {label 'Linux'}
             steps {
 
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
@@ -106,7 +106,7 @@ pipeline {
                 sh '''
                     whoami
                     hostname
-                    echo WORKSPACE=%WORKSPACE%
+                    echo WORKSPACE=$WORKSPACE
                     /home/jenkins/.local/bin/bandit --exit-zero -r . -f custom --msg-template "{abspath}:{line}: [{test_id}, ] {msg}" > bandit-pylint.out
 
                 '''  
@@ -121,7 +121,7 @@ pipeline {
     }
 
          stage('Performance'){
-             agent {label 'Linux'}
+             agent {label 'windows'}
              steps {
 
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
@@ -131,7 +131,7 @@ pipeline {
                 bat '''
                     whoami
                     hostname
-                    echo WORKSPACE=%WORKSPACE%
+                    echo WORKSPACE=$WORKSPACE
                     set FLASK_APP=app\\api.py
                     start flask run
                     ping 127.0.0.1 -n 7 >nul
